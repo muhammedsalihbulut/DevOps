@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jenkins
+  namespace: jenkins
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jenkins
+  template:
+    metadata:
+      labels:
+        app: jenkins
+    spec:
+      securityContext:
+        runAsUser: 0
+        runAsGroup: 0
+        fsGroup: 0
+      containers:
+        - name: jenkins
+          # Eğer kendi image’ını push ettiysen buraya onun adını yazabilirsin
+          image: msbblttt/jenkins-custom:latest
+          ports:
+            - containerPort: 8080
+            - containerPort: 50000
+          volumeMounts:
+            - name: jenkins-data
+              mountPath: /var/jenkins_home
+            - name: docker-sock
+              mountPath: /var/run/docker.sock
+            - name: containerd-sock
+              mountPath: /run/containerd/containerd.sock
+              readOnly: false
+            - name: buildkit-data
+              mountPath: /var/lib/buildkit
+            - name: containerd-data
+              mountPath: /var/lib/containerd
+            - name: jenkins-bin
+              mountPath: /usr/local/bin/jenkins-bin
+            - name: k8s-gitops-repo
+              mountPath: /data/my-k8s-deployments
+      volumes:
+        - name: jenkins-data
+          hostPath:
+            path: /data/jenkins-data
+            type: DirectoryOrCreate
+        - name: docker-sock
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: containerd-sock
+          hostPath:
+            path: /run/containerd/containerd.sock
+            type: Socket
+        - name: buildkit-data
+          hostPath:
+            path: /var/lib/buildkit
+            type: DirectoryOrCreate
+        - name: containerd-data
+          hostPath:
+            path: /var/lib/containerd
+            type: DirectoryOrCreate
+        - name: jenkins-bin
+          hostPath:
+            path: /data/jenkins-bin
+            type: DirectoryOrCreate
+        - name: k8s-gitops-repo
+          hostPath:
+            path: /data/my-k8s-deployments
+            type: DirectoryOrCreate

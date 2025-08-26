@@ -1,0 +1,10 @@
+controller:
+  serviceType: NodePort
+  nodePort: 31000
+  admin:
+    username: admin
+    password: admin123
+  ingress:
+    enabled: false
+  persistence:
+    enabled: false

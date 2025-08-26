@@ -1,0 +1,45 @@
+pipeline {
+    agent any
+    environment {
+        MINIO_ALIAS = 'minio'
+        MINIO_URL = 'http://10.34.27.53:30900'
+        MINIO_ACCESS_KEY = 'minioadmin'
+        MINIO_SECRET_KEY = 'minioadmin123'
+        BUCKET = 'msbblt'
+        MC_BIN = '/usr/local/bin/mc'
+        PROJECT_PATH = '/data/msb-static-site'
+    }
+    stages {
+        stage('Install mc') {
+            steps {
+                sh '''
+                  if ! [ -x $MC_BIN ]; then
+                    wget -qO $MC_BIN https://dl.min.io/client/mc/release/linux-amd64/mc
+                    chmod +x $MC_BIN
+                  fi
+                '''
+            }
+        }
+        stage('Configure mc') {
+            steps {
+                sh '''
+                  $MC_BIN alias set $MINIO_ALIAS $MINIO_URL $MINIO_ACCESS_KEY $MINIO_SECRET_KEY
+                '''
+            }
+        }
+        stage('Upload site to MinIO') {
+            steps {
+                sh '''
+                  cd $PROJECT_PATH
+                  $MC_BIN rm -r --force $MINIO_ALIAS/$BUCKET/*
+                  $MC_BIN cp --recursive site/ $MINIO_ALIAS/$BUCKET/
+                '''
+            }
+        }
+        stage('Restart Nginx Deployment') {
+            steps {
+                sh 'kubectl rollout restart deployment/nginx-static-site -n default'
+            }
+        }
+    }
+}
