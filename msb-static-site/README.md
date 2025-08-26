@@ -58,6 +58,9 @@ This repository serves as a hands-on guide for learning and building production-
 ```
 
 ---
+<img width="2379" height="1580" alt="1_94cFpaKKYRNuhCYWYCipsg" src="https://github.com/user-attachments/assets/a5842fcc-4d65-4587-bf23-fab71893c46a" />
+
+
 
 ## 🗺️ High-Level Architecture
 
