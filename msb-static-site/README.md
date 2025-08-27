@@ -1,23 +1,9 @@
 
-# DevOps-Lab
-
-A comprehensive DevOps and Kubernetes learning lab designed for modern cloud-native applications. This repository contains infrastructure components, observability tools, messaging systems, storage solutions, and real-world application examples — all ready to deploy on Kubernetes.
+Jenkins-ArgoCD Pipeline project
 
 ---
 
-## 📌 Purpose
-
-This repository serves as a hands-on guide for learning and building production-grade Kubernetes environments. It enables developers, DevOps engineers, and SREs to:
-
-- Deploy microservices with proper observability
-- Configure secure, reliable messaging systems
-- Manage storage solutions for cloud-native apps
-- Implement monitoring, tracing, and logging
-- Apply GitOps and Infrastructure-as-Code best practices
-
----
-
-## 🏗️ Repository Structure
+## 🏗️ Project Structure
 
 ```
 ## Master1
@@ -154,28 +140,7 @@ https://medium.com/@salihbulut417/jenkins-argocd-pipeline-project-9d8b4238ad8a
 
 ---
 
-## 🧠 Learnings & Best Practices
-
-- ✅ GitOps with clean directory structure
-- ✅ Declarative Kubernetes YAML files
-- ✅ Observability baked into the applications (tracing, metrics, logging)
-- ✅ Microservices communication with Ingress Controller (Traefik)
-- ✅ Local or cloud-native storage with MinIO
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for details.
-
----
 
 ## 🤝 Contributing
 
 Contributions are welcome! Please fork the repository and submit a pull request.
-
----
-
----
-
-> ✨ If you find this repository useful, give it a ⭐ star and share it!
