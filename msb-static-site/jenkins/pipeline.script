@@ -1,3 +1,6 @@
+## !!!! Bu dosyayı Jenkins arayüzünden pipeline oluşturup orada bulunan pipeline script bölümüne ekleyeceksiniz.
+
+
 pipeline {
   agent any
 
