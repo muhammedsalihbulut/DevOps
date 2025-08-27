@@ -1,3 +1,4 @@
+# Build Aşaması
 FROM jenkins/jenkins:lts
 
 USER root
