@@ -1,0 +1,100 @@
+pipeline {
+  agent any
+
+  environment {
+    // Docker image adı (Docker Hub)
+    IMAGE_NAME  = 'msbblttt/nginx-static-site'
+    // Tag olarak build numarasını kullanıyoruz
+    IMAGE_TAG   = "${BUILD_NUMBER}"
+    // Repo kökünde duran manifest dosyanız
+    APP_YAML    = 'nginx-static-site.yaml'
+    GIT_REMOTE  = 'https://github.com/muhammedsalihbulut/my-k8s-deployments.git'
+  }
+
+  triggers {
+    // GitHub webhook tetiklediğinde çalışır (UI’de de işaretli olmalı)
+    githubPush()
+    // Ek güvence: her 5 dakikada bir SCM değişikliği var mı diye bak
+    pollSCM('H/5 * * * *')
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout([$class: 'GitSCM',
+          userRemoteConfigs: [[url: env.GIT_REMOTE]],
+          branches: [[name: '*/main']]
+        ])
+        sh 'git log -1 --oneline || true'
+      }
+    }
+
+    stage('Build Docker Image') {
+      steps {
+        // Host Docker’ını kullanıyoruz (/var/run/docker.sock pod’a bağlı olmalı)
+        sh """
+          docker version
+          docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+        """
+      }
+    }
+
+    stage('Push Docker Image') {
+      environment {
+        // Jenkins > Credentials (Kind: Username with password)
+        // ID: DOCKERHUB_TOKEN  (username/password sizin Docker Hub hesabınız)
+      }
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'DOCKERHUB_TOKEN',
+                                          usernameVariable: 'DOCKERHUB_USER',
+                                          passwordVariable: 'DOCKERHUB_PSW')]) {
+          sh """
+            echo "\$DOCKERHUB_PSW" | docker login -u "\$DOCKERHUB_USER" --password-stdin
+            docker push ${IMAGE_NAME}:${IMAGE_TAG}
+            docker logout
+          """
+        }
+      }
+    }
+
+    stage('Update Deployment YAML and Push') {
+      environment {
+        // Jenkins > Credentials (Kind: Secret text)
+        // ID: GITHUB_TOKEN  (GitHub PAT)
+      }
+      steps {
+        withCredentials([string(credentialsId: 'GITHUB_TOKEN', variable: 'GITHUB_PAT')]) {
+          sh """
+            set -e
+
+            # 1) image tag’i güncelle
+            sed -ri "s#(image:\\s*${IMAGE_NAME}:).*#\\1${IMAGE_TAG}#g" ${APP_YAML}
+
+            # 2) (opsiyonel) rollout’u kesin tetiklemek için anotasyonu da güncelle
+            if grep -q 'msb-cd-trigger:' ${APP_YAML}; then
+              sed -ri "s#(msb-cd-trigger:\\s*\\\").*(\\\")#\\1${BUILD_NUMBER}\\2#g" ${APP_YAML}
+            fi
+
+            git config user.email "msb@example.com"
+            git config user.name  "MSB"
+
+            # PAT ile push
+            git add ${APP_YAML} || true
+            git commit -m "CD: ${IMAGE_NAME}:${IMAGE_TAG} (build ${BUILD_NUMBER})" || true
+            git remote set-url origin https://${GITHUB_PAT}@github.com/muhammedsalihbulut/my-k8s-deployments.git
+            git push origin HEAD:main
+          """
+        }
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Build ${BUILD_NUMBER} OK — image: ${IMAGE_NAME}:${IMAGE_TAG}"
+    }
+    failure {
+      echo "❌ Pipeline FAILED!"
+    }
+  }
+}
