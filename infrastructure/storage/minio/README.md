@@ -24,3 +24,7 @@ kubectl apply -f minio-deployment.yaml
 bash
 kubectl apply -f minio-secret.yaml
 ```
+```
+kubectl get secret minio-secret -n default -o jsonpath="{.data.MINIO_ROOT_USER}" | base64 --decode; echo
+kubectl get secret minio-secret -n default -o jsonpath="{.data.MINIO_ROOT_PASSWORD}" | base64 --decode; echo
+```
